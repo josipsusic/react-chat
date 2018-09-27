@@ -22,6 +22,9 @@ class App extends React.Component {
         this.state = {
             messages: []
         }
+
+        // enable sendMessage() method access to 'this'
+        this.sendMessage = this.sendMessage.bind(this);
         
     }
 
@@ -37,7 +40,11 @@ class App extends React.Component {
 
         chatManager.connect()
         .then(currentUser => {
-            currentUser.subscribeToRoom({
+            // make current user available to the whole component instance
+            // hook the currentUser to the component itself
+            // then create sendMessage()
+            this.currentUser = currentUser;
+            this.currentUser.subscribeToRoom({
                 roomId: 16829985,
                 hooks: {
                     onNewMessage: message => {
@@ -61,12 +68,22 @@ class App extends React.Component {
         })
     }
 
+    sendMessage(text) { 
+        // send sendMessage() as a prop to SendMessageForm
+        // SendMessageForm will get access to the sendMessage()
+        // which has access to the this.currentUser.sendMessage()
+        this.currentUser.sendMessage({
+            text, // or text: text
+            roomId: 16829985
+        });
+    }
+
     render() {
         return ( // pass the data down to MessageList via props
             <div className="app">
                 <RoomList />
                 <MessageList messages={this.state.messages} />
-                <SendMessageForm />
+                <SendMessageForm sendMessage={this.sendMessage} />
                 <NewRoomForm />
             </div>
         );
